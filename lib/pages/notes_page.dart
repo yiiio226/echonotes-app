@@ -139,7 +139,7 @@ class NotesPage extends StatelessWidget {
                               // TODO: 播放/暂停
                             },
                           ),
-                          const SizedBox(width: ADSSpacing.spaceXl),
+                      const Spacer(),
                           Expanded(
                             child: Wrap(
                               spacing: ADSSpacing.spaceLg,
@@ -149,7 +149,7 @@ class NotesPage extends StatelessWidget {
                               label: '1x',
                               selected: true,
                             ),
-                                _SpeedChip(label: '1.25x'),
+                    
                                 _SpeedChip(label: '1.5x'),
                                 _SpeedChip(label: '2x'),
                               ],

@@ -5,6 +5,7 @@ import 'package:echonotes/components/app_text.dart';
 import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/app_bottom_sheet.dart';
 import 'package:echonotes/components/app_text_field.dart';
+import 'package:echonotes/pages/upgrade_page.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
@@ -229,7 +230,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       AppButton(
                         label: 'Upgrade',
                         onPressed: () {
-                          // TODO: 跳转到升级页
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UpgradePage(),
+                            ),
+                          );
                         },
                       ),
                     ],
