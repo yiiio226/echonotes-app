@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:echonotes/design/app_design_system.dart';
 import 'package:echonotes/pages/home_page.dart';
 
-void main() {
+void main() async {
+  // 确保在使用插件（如 shared_preferences）前完成引擎绑定
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const EchoNotesApp());
 }
 

@@ -123,6 +123,21 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // 删除笔记
+  void _deleteNote(Note note) {
+    final String q = _searchCtrl.text.trim().toLowerCase();
+    setState(() {
+      _all = _all.where((n) => n.id != note.id).toList();
+      _filtered = q.isEmpty
+          ? _all
+          : _all
+              .where((n) =>
+                  n.title.toLowerCase().contains(q) ||
+                  n.summary.toLowerCase().contains(q))
+              .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // final theme = Theme.of(context);
@@ -207,7 +222,10 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => NotesPage(note: n),
+                                  builder: (_) => NotesPage(
+                                    note: n,
+                                    onNoteDeleted: () => _deleteNote(n),
+                                  ),
                                 ),
                               );
                             },

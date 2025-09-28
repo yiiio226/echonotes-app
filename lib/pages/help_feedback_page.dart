@@ -58,23 +58,27 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
             const SizedBox(height: ADSSpacing.spaceSm),
             
             _buildFaqItem(
-              question: '如何录制更长的语音笔记？',
-              answer: '免费版限制每次录音1分钟。升级到专业版可享受无限录音时长，并解锁更多高级功能。',
+              question: 'How to record longer voice notes?',
+              answer:
+                  'The free plan limits each recording to 1 minute. Upgrade to Pro to enjoy unlimited recording duration and unlock more advanced features.',
             ),
             SizedBox(height: ADSSpacing.spaceSm),
             _buildFaqItem(
-              question: '如何导出我的笔记？',
-              answer: '专业版用户可以将笔记导出为PDF或Markdown格式。在笔记详情页点击"更多"菜单，然后选择"导出"选项。',
+              question: 'How to export my notes?',
+              answer:
+                  'Pro users can export notes as PDF or Markdown format. In the note details page, tap the "More" menu and select "Export" option.',
             ),
             SizedBox(height: ADSSpacing.spaceSm),
             _buildFaqItem(
-              question: '如何同步到其他设备？',
-              answer: '专业版支持多设备同步。确保在所有设备上使用相同账号登录，您的笔记将自动同步。',
+              question: 'How to sync to other devices?',
+              answer:
+                  'Pro plan supports multi-device sync. Make sure to log in with the same account on all devices, and your notes will sync automatically.',
             ),
             SizedBox(height: ADSSpacing.spaceSm),
             _buildFaqItem(
-              question: '语音识别支持哪些语言？',
-              answer: '目前支持中文、英语、日语等20多种主要语言。系统会自动检测您的系统语言，或您可以在设置中手动选择首选语言。',
+              question: 'What languages does speech recognition support?',
+              answer:
+                  'Currently supports over 20 major languages including Chinese, English, Japanese, etc. The system will automatically detect your system language, or you can manually select your preferred language in settings.',
             ),
             SizedBox(height: ADSSpacing.spaceSm),
             const SizedBox(height: ADSSpacing.spaceXl),
@@ -162,7 +166,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
             const AppTextSubtitle('Send Feedback'),
             const SizedBox(height: ADSSpacing.spaceSm),
             const AppTextBody(
-              '我们非常重视您的反馈，它能帮助我们不断改进产品。请告诉我们您的想法、建议或遇到的问题。',
+              'We value your feedback greatly as it helps us continuously improve our product. Please share your thoughts, suggestions, or any issues you encounter.',
             ),
             const SizedBox(height: ADSSpacing.spaceLg),
             
@@ -170,7 +174,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
               controller: _feedbackCtrl,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: '请输入您的反馈...',
+                hintText: 'Please enter your feedback...',
                 contentPadding: const EdgeInsets.all(ADSSpacing.spaceLg),
                 border: OutlineInputBorder(
                   borderRadius: ADSRadius.radiusLg,
@@ -180,7 +184,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
             const SizedBox(height: ADSSpacing.spaceLg),
             
             AppButton(
-              label: _isSubmitting ? '提交中...' : '提交反馈',
+              label: _isSubmitting ? 'Submitting...' : 'Submit Feedback',
               onPressed: _isSubmitting ? null : _submitFeedback,
               expanded: true,
             ),
@@ -231,7 +235,8 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('感谢您的反馈！我们将认真考虑您的建议。'),
+            content: Text(
+                'Thank you for your feedback! We will carefully consider your suggestions.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -241,7 +246,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('提交失败，请稍后重试。'),
+            content: Text('Submission failed, please try again later.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
