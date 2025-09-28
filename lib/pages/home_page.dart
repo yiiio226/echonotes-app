@@ -7,6 +7,8 @@ import 'package:echonotes/components/app_text.dart';
 import 'package:echonotes/components/note_list_item.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:echonotes/pages/notes_page.dart';
+import 'package:echonotes/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -90,6 +92,7 @@ class _HomePageState extends State<HomePage> {
         surfaceTintColor: Colors.transparent,
         titleSpacing: ADSSpacing.spaceXl,
         title: Column(
+          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             AppTextHeadline("Let's EchoNote"),
@@ -97,10 +100,20 @@ class _HomePageState extends State<HomePage> {
             AppTextBody('anything you care'),
           ],
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: ADSSpacing.spaceXl),
-            child: CircleAvatar(radius: 16, child: Icon(Icons.person, size: 18)),
+            padding: const EdgeInsets.only(right: ADSSpacing.spaceXl),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                );
+              },
+              child: const CircleAvatar(
+                radius: 16,
+                child: Icon(Icons.person, size: 18),
+              ),
+            ),
           ),
         ],
       ),
@@ -129,7 +142,16 @@ class _HomePageState extends State<HomePage> {
           ..._filtered
               .map((n) => Padding(
                     padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                    child: NoteListItem(note: n, onTap: () {}),
+                    child: NoteListItem(
+                      note: n,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => NotesPage(note: n),
+                          ),
+                        );
+                      },
+                    ),
                   ))
               .toList(),
           const SizedBox(height: 96),
@@ -179,6 +201,7 @@ class _RecordingSheetState extends State<_RecordingSheet> {
   bool _sttAvailable = false;
   bool _sttListening = false;
   String _transcript = '';
+  String? _localeId;
 
   @override
   void initState() {
@@ -210,9 +233,11 @@ class _RecordingSheetState extends State<_RecordingSheet> {
     }
     // 1) 保存笔记；2) 生成文字转写与简短摘要；3) 收回面板；4) 首页顶部新增新笔记
     final DateTime now = DateTime.now();
-    final String transcript = _transcript.isNotEmpty ? _transcript : _mockTranscribe(_elapsed);
-    final String title = _deriveTitle(transcript);
-    final String summary = _summarize(transcript);
+    // 仅使用真实识别结果；不再使用占位/演示文案
+    final String transcript = _transcript.trim();
+    final String title = transcript.isEmpty ? '语音笔记' : _deriveTitle(transcript);
+    final String summary =
+        transcript.isEmpty ? '（未识别到语音）' : _summarize(transcript);
     final note = Note(
       id: now.microsecondsSinceEpoch.toString(),
       title: title,
@@ -232,6 +257,21 @@ class _RecordingSheetState extends State<_RecordingSheet> {
         debugLogging: false,
       );
       if (!_sttAvailable) return;
+      // 优先选择中文识别语言，其次使用系统语言
+      try {
+        final locales = await _stt.locales();
+        String? zhLocaleId;
+        for (final l in locales) {
+          if (l.localeId.toLowerCase().startsWith('zh')) {
+            zhLocaleId = l.localeId;
+            break;
+          }
+        }
+        final sys = await _stt.systemLocale();
+        setState(() {
+          _localeId = zhLocaleId ?? sys?.localeId;
+        });
+      } catch (_) {}
       await _stt.listen(
         onResult: (r) {
           setState(() {
@@ -242,6 +282,7 @@ class _RecordingSheetState extends State<_RecordingSheet> {
         pauseFor: const Duration(seconds: 3),
         partialResults: true,
         cancelOnError: true,
+        localeId: _localeId,
       );
       _sttListening = true;
     } catch (_) {
@@ -355,13 +396,6 @@ class _RoundIconButton extends StatelessWidget {
       ),
     );
   }
-}
-
-// 简单占位：将来可替换为真实语音转写和摘要逻辑
-String _mockTranscribe(Duration d) {
-  final String mm = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-  final String ss = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-  return '这是一段自动转写的内容，用于演示：会议要点、代办与灵感记录（时长 $mm:$ss）。后续可接入真实 ASR 服务。';
 }
 
 String _deriveTitle(String transcript) {
