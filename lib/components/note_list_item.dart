@@ -7,8 +7,11 @@ import 'package:echonotes/models/note.dart';
 class NoteListItem extends StatelessWidget {
   final Note note;
   final VoidCallback? onTap;
+  // 搜索关键词高亮
+  final String? highlight;
 
-  const NoteListItem({super.key, required this.note, this.onTap});
+  const NoteListItem(
+      {super.key, required this.note, this.onTap, this.highlight});
 
   String _formatDate(DateTime dt) {
     final String ampm = dt.hour >= 12 ? 'PM' : 'AM';
@@ -34,6 +37,16 @@ class NoteListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final brightness = theme.brightness;
+    final Color titleColor = brightness == Brightness.dark
+        ? ADSColors.darkTextPrimary
+        : ADSColors.lightTextPrimary;
+    final Color bodyColor = brightness == Brightness.dark
+        ? ADSColors.darkTextSecondary
+        : ADSColors.lightTextSecondary;
+
     return AppCard(
       onTap: onTap,
       child: Row(
@@ -43,11 +56,26 @@ class NoteListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppTextTitle(note.title),
+                // 标题（支持关键词高亮）
+                _buildHighlightedText(
+                  context,
+                  note.title,
+                  highlight,
+                  ADSTypography.h3.copyWith(color: titleColor),
+                  ADSTypography.h3.copyWith(
+                      color: ADSColors.lightSuccess,
+                      fontWeight: FontWeight.w700),
+                  maxLines: 1,
+                ),
                 const SizedBox(height: ADSSpacing.spaceSm),
-                AppTextBody(
+                _buildHighlightedText(
+                  context,
                   note.summary,
-                  color: ADSColors.lightTextSecondary,
+                  highlight,
+                  ADSTypography.body.copyWith(color: bodyColor),
+                  ADSTypography.body.copyWith(
+                      color: ADSColors.lightSuccess,
+                      fontWeight: FontWeight.w700),
                   maxLines: 2,
                 ),
                 const SizedBox(height: ADSSpacing.spaceSm),
@@ -67,6 +95,46 @@ class NoteListItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // 构建支持高亮的文本
+  Widget _buildHighlightedText(
+    BuildContext context,
+    String text,
+    String? query,
+    TextStyle baseStyle,
+    TextStyle highlightStyle, {
+    int? maxLines,
+  }) {
+    if (query == null || query.trim().isEmpty) {
+      return Text(
+        text,
+        style: baseStyle,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    final String q = query.trim();
+    final RegExp reg = RegExp(RegExp.escape(q), caseSensitive: false);
+    final List<TextSpan> spans = [];
+    int start = 0;
+    for (final m in reg.allMatches(text)) {
+      if (m.start > start) {
+        spans.add(
+            TextSpan(text: text.substring(start, m.start), style: baseStyle));
+      }
+      spans.add(TextSpan(
+          text: text.substring(m.start, m.end), style: highlightStyle));
+      start = m.end;
+    }
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start), style: baseStyle));
+    }
+    return RichText(
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(children: spans),
     );
   }
 }
