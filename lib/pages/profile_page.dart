@@ -3,6 +3,10 @@ import 'package:echonotes/design/app_design_system.dart';
 import 'package:echonotes/components/app_card.dart';
 import 'package:echonotes/components/app_text.dart';
 import 'package:echonotes/components/app_button.dart';
+import 'package:echonotes/components/app_bottom_sheet.dart';
+import 'package:echonotes/components/app_text_field.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 /// ProfilePage（TSX + 设计图 -> Flutter 静态映射）
 ///
@@ -14,8 +18,17 @@ import 'package:echonotes/components/app_button.dart';
 /// - Footer: 版本信息 -> 文本
 ///
 /// 样式仅使用设计系统令牌（颜色、间距、圆角、排版），交互均以 TODO 标注。
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final TextEditingController _nameCtrl =
+      TextEditingController(text: 'John Doe');
+  String? _avatarPath; // 本地头像路径
 
   Color _successColor(Brightness b) =>
       b == Brightness.dark ? ADSColors.darkSuccess : ADSColors.lightSuccess;
@@ -25,6 +38,20 @@ class ProfilePage extends StatelessWidget {
 
   Color _errorColor(Brightness b) =>
       b == Brightness.dark ? ADSColors.darkError : ADSColors.lightError;
+
+  Future<void> _pickAvatar() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _avatarPath = image.path;
+        });
+      }
+    } catch (_) {
+      // TODO: 处理授权失败/用户取消
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,20 +83,31 @@ class ProfilePage extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: cs.primary.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.person_outline,
-                      size: 36,
-                      color: cs.primary,
+                  GestureDetector(
+                    onTap: _pickAvatar,
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _avatarPath == null
+                          ? Container(
+                              color: cs.primary,
+                              child: Icon(
+                                Icons.person_outline,
+                                size: 36,
+                                color: ADSColors.lightSurface,
+                              ),
+                            )
+                          : Image.file(
+                              File(_avatarPath!),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
-                  const SizedBox(height: ADSSpacing.spaceLg),
+                  const SizedBox(height: ADSSpacing.spaceXl),
                 ],
               ),
             ),
@@ -77,7 +115,45 @@ class ProfilePage extends StatelessWidget {
             // ============ 可编辑名称项 ============
             AppCard(
               onTap: () {
-                // TODO: 打开修改名称底部弹层
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (ctx) => AppBottomSheet(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        const AppTextSubtitle('Edit Name'),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        AppTextBody('Enter your new display name'),
+                        const SizedBox(height: ADSSpacing.spaceXl),
+                        AppTextField(
+                          controller: _nameCtrl,
+                          hintText: 'Your name',
+                          autofocus: true,
+                        ),
+                        const SizedBox(height: ADSSpacing.spaceXl),
+                        AppButton(
+                          label: 'Save Changes',
+                          onPressed: () {
+                            // 保存名称到页面展示
+                            setState(() {});
+                            Navigator.of(context).maybePop();
+                          },
+                          expanded: true,
+                        ),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        AppButton(
+                          label: 'Cancel',
+                          variant: AppButtonVariant.secondary,
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          expanded: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
               child: Row(
                 children: [
@@ -211,8 +287,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: ADSSpacing.spaceSm),
             _SettingsItem(
               icon: Icons.cloud_outlined,
-              iconBg: cs.primary.withOpacity(0.12),
-              iconColor: cs.primary,
+              iconBg: cs.secondary,
+              iconColor: ADSColors.lightButtonPrimary,
               title: 'Cloud Sync',
               subtitle: 'Sync notes across devices',
               trailing: Switch(
@@ -223,8 +299,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: ADSSpacing.spaceSm),
             _SettingsItem(
               icon: Icons.shield_outlined,
-              iconBg: cs.primary.withOpacity(0.12),
-              iconColor: cs.primary,
+              iconBg: cs.secondary,
+              iconColor: ADSColors.lightButtonPrimary,
               title: 'Privacy Settings',
               subtitle: 'Manage data and privacy',
               trailing: const Icon(Icons.chevron_right),
@@ -235,8 +311,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: ADSSpacing.spaceSm),
             _SettingsItem(
               icon: Icons.help_outline,
-              iconBg: cs.primary.withOpacity(0.12),
-              iconColor: cs.primary,
+              iconBg: cs.secondary,
+              iconColor: ADSColors.lightButtonPrimary,
               title: 'Help & Feedback',
               subtitle: 'Get help or send feedback',
               trailing: const Icon(Icons.chevron_right),

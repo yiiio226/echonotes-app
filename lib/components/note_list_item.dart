@@ -54,9 +54,11 @@ class NoteListItem extends StatelessWidget {
                 Row(
                   children: [
                     AppTextCaption(_formatDate(note.createdAt)),
-                    const SizedBox(width: ADSSpacing.spaceLg),
-                    AppTextCaption(_formatDuration(note.duration)),
+                   
+                    
                     const Spacer(),
+                    AppTextCaption(_formatDuration(note.duration)),
+                    const SizedBox(width: ADSSpacing.spaceLg),
                     const Icon(Icons.play_arrow, size: 18),
                   ],
                 ),

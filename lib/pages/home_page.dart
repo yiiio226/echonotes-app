@@ -86,7 +86,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     // final theme = Theme.of(context);
-    return Scaffold(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/img_bg.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -98,7 +107,10 @@ class _HomePageState extends State<HomePage> {
           children: const [
             AppTextHeadline("Let's EchoNote"),
             SizedBox(height: 4),
-            AppTextHeadline('anything you care'),
+                AppTextHeadline(
+                  'anything you care',
+                  color: ADSColors.lightTextSecondary,
+                ),
           ],
         ),
         centerTitle: false,
@@ -111,24 +123,23 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (_) => const ProfilePage()),
                 );
               },
-              child: const CircleAvatar(
+                  child: CircleAvatar(
+                    backgroundColor: ADSColors.lightSurface.withOpacity(0.4),
                 radius: 20,
-                child: Icon(Icons.person, size: 20),
+                    child: Icon(
+                      Icons.person,
+                      size: 20,
+                      color: ADSColors.lightTextPrimary,
+                    ),
               ),
             ),
           ),
         ],
       ),
-      
-      body: Stack(
-        children: [
-          // 顶部柔和渐变背景（参考设计图）
-         
-         
-          ListView(
+          body: ListView(
             padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
             children: [
-              const SizedBox(height: ADSSpacing.spaceXl),
+              //const SizedBox(height: ADSSpacing.spaceXl),
               Row(
                 children: const [
                   AppTextSubtitle('All Notes'),
@@ -162,8 +173,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 96),
             ],
           ),
-        ],
-      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -173,7 +182,7 @@ class _HomePageState extends State<HomePage> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: ADSColors.buttonPrimary,
+                  color: ADSColors.lightButtonPrimary,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.mic, color: Colors.white),
@@ -186,6 +195,8 @@ class _HomePageState extends State<HomePage> {
           child: AppTextCaption('Tap to record'),
         ),
       ),
+        ),
+      ],
     );
   }
 }

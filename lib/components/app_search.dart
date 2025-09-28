@@ -22,9 +22,7 @@ class AppSearch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final Color dividerColor = theme.brightness == Brightness.dark
-        ? ADSColors.darkDivider
-        : ADSColors.lightDivider;
+    const Color transparent = Colors.transparent;
     return Padding(
       padding: margin ?? EdgeInsets.zero,
       child: TextField(
@@ -32,22 +30,23 @@ class AppSearch extends StatelessWidget {
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: ADSTypography.body.copyWith(color: ADSColors.lightTextDisabled),
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderRadius: ADSRadius.radiusLg,
-            borderSide: BorderSide(color: dividerColor),
+            borderSide: const BorderSide(color: transparent),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: ADSRadius.radiusLg,
-            borderSide: BorderSide(color: dividerColor),
+            borderSide: const BorderSide(color: transparent),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: ADSRadius.radiusLg,
-            borderSide: BorderSide(color: dividerColor, width: 1.2),
+            borderSide: const BorderSide(color: transparent, width: 1),
           ),
          
           filled: true,
-          fillColor: theme.colorScheme.surface,
+          fillColor: theme.colorScheme.surface.withOpacity(0.4),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: ADSSpacing.spaceLg,

@@ -33,16 +33,18 @@ class AppButton extends StatelessWidget {
 
     // 根据 variant 选择语义色
     final Color backgroundColor = switch (variant) {
-      AppButtonVariant.primary => ADSColors.buttonPrimary,
+      AppButtonVariant.primary => ADSColors.lightButtonPrimary,
       AppButtonVariant.secondary => ADSColors.secondary,
     };
 
-    final Color foregroundColor = Colors.white;
+    final Color foregroundColor = variant == AppButtonVariant.primary
+        ? ADSColors.lightSurface
+        : ADSColors.lightTextPrimary;
 
     final ButtonStyle style = ElevatedButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      textStyle: ADSTypography.body,
+      textStyle: ADSTypography.h3,
       padding: const EdgeInsets.symmetric(
         horizontal: ADSSpacing.spaceXl,
         vertical: ADSSpacing.spaceSm,
