@@ -91,13 +91,14 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        toolbarHeight: 162,
         titleSpacing: ADSSpacing.spaceXl,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             AppTextHeadline("Let's EchoNote"),
             SizedBox(height: 4),
-            AppTextBody('anything you care'),
+            AppTextHeadline('anything you care'),
           ],
         ),
         centerTitle: false,
@@ -111,38 +112,23 @@ class _HomePageState extends State<HomePage> {
                 );
               },
               child: const CircleAvatar(
-                radius: 16,
-                child: Icon(Icons.person, size: 18),
+                radius: 20,
+                child: Icon(Icons.person, size: 20),
               ),
             ),
           ),
         ],
       ),
+      
       body: Stack(
         children: [
           // 顶部柔和渐变背景（参考设计图）
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                      Theme.of(context).colorScheme.secondary.withOpacity(0.12),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+         
+         
           ListView(
             padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
             children: [
-              const SizedBox(height: ADSSpacing.spaceLg),
+              const SizedBox(height: ADSSpacing.spaceXl),
               Row(
                 children: const [
                   AppTextSubtitle('All Notes'),
