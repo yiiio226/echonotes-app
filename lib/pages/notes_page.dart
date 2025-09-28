@@ -319,7 +319,7 @@ class _NotesPageState extends State<NotesPage> {
                       children: <Widget>[
                         AppTextBody(
                           // 仅示意：使用 summary 充当段落文本
-                          '${note.summary} ${note.summary}',
+                      '${note.summary}',
                           softWrap: true,
                         ),
                         const SizedBox(height: ADSSpacing.spaceSm),

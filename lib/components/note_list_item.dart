@@ -38,7 +38,6 @@ class NoteListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     final brightness = theme.brightness;
     final Color titleColor = brightness == Brightness.dark
         ? ADSColors.darkTextPrimary
@@ -68,12 +67,25 @@ class NoteListItem extends StatelessWidget {
                   maxLines: 1,
                 ),
                 const SizedBox(height: ADSSpacing.spaceSm),
+                // 摘要（一行）
                 _buildHighlightedText(
                   context,
                   note.summary,
                   highlight,
                   ADSTypography.body.copyWith(color: bodyColor),
                   ADSTypography.body.copyWith(
+                      color: ADSColors.lightSuccess,
+                      fontWeight: FontWeight.w700),
+                  maxLines: 1,
+                ),
+                const SizedBox(height: ADSSpacing.spaceSm),
+                // 转录文本（两行）
+                _buildHighlightedText(
+                  context,
+                  note.transcription,
+                  highlight,
+                  ADSTypography.caption.copyWith(color: bodyColor),
+                  ADSTypography.caption.copyWith(
                       color: ADSColors.lightSuccess,
                       fontWeight: FontWeight.w700),
                   maxLines: 2,
