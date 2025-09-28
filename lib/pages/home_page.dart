@@ -8,6 +8,8 @@ import 'package:echonotes/components/note_list_item.dart';
 import 'package:echonotes/components/app_search.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:echonotes/pages/notes_page.dart';
 import 'package:echonotes/pages/profile_page.dart';
 
@@ -282,12 +284,15 @@ class _RecordingSheetState extends State<_RecordingSheet> {
   bool _sttListening = false;
   String _transcript = '';
   String? _localeId;
+  final AudioRecorder _rec = AudioRecorder();
+  String? _audioPath;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
     _startSpeechToText();
+    _startRecording();
   }
 
   void _startTimer() {
@@ -311,6 +316,8 @@ class _RecordingSheetState extends State<_RecordingSheet> {
       _stt.stop();
       _sttListening = false;
     }
+    // 停止录音，获取音频文件路径
+    _finishRecording();
     // 1) 保存笔记；2) 生成文字转写与简短摘要；3) 收回面板；4) 首页顶部新增新笔记
     final DateTime now = DateTime.now();
     // 仅使用真实识别结果；不再使用占位/演示文案
@@ -324,7 +331,7 @@ class _RecordingSheetState extends State<_RecordingSheet> {
       summary: summary,
       createdAt: now,
       duration: _elapsed,
-      audioPath: null,
+      audioPath: _audioPath,
     );
     widget.onSaved(note);
     Navigator.of(context).maybePop();
@@ -373,8 +380,37 @@ class _RecordingSheetState extends State<_RecordingSheet> {
   @override
   void dispose() {
     _timer.cancel();
+    _rec.dispose();
     super.dispose();
   }
+
+  Future<void> _startRecording() async {
+    try {
+      final bool hasPerm = await _rec.hasPermission();
+      if (!hasPerm) return;
+      final dir = await getTemporaryDirectory();
+      final String path =
+          '${dir.path}/echonotes_${DateTime.now().microsecondsSinceEpoch}.m4a';
+      _audioPath = path;
+      await _rec.start(
+        RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: path,
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _finishRecording() async {
+    try {
+      final p = await _rec.stop();
+      if (p != null) _audioPath = p;
+    } catch (_) {}
+  }
+
+  // 注意：dispose 已在上方定义，这里移除重复定义
 
   String _format(Duration d) {
     final String mm = d.inMinutes.remainder(60).toString().padLeft(2, '0');

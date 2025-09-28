@@ -6,6 +6,7 @@ import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/app_bottom_sheet.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:echonotes/components/note_list_item.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 /// NotesPage（TSX -> Flutter 静态映射）
 ///
@@ -27,6 +28,38 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   Note get note => widget.note;
+  final AudioPlayer _player = AudioPlayer();
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 绑定播放器事件
+    _player.onPositionChanged.listen((p) {
+      if (!mounted) return;
+      setState(() => _position = p);
+    });
+    _player.onDurationChanged.listen((d) {
+      if (!mounted) return;
+      setState(() => _duration = d);
+    });
+    _player.onPlayerStateChanged.listen((s) {
+      if (!mounted) return;
+      setState(() => _isPlaying = s == PlayerState.playing);
+    });
+    // 预加载音频（若有）
+    if (note.audioPath != null) {
+      _player.setSource(DeviceFileSource(note.audioPath!));
+    }
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
 
   String _formatDuration(Duration d) {
     final String mm = d.inMinutes.remainder(60).toString();
@@ -167,8 +200,10 @@ class _NotesPageState extends State<NotesPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          const AppTextSubtitle('0:13'), // TODO: 绑定当前进度
-                          AppTextSubtitle(_formatDuration(note.duration)),
+                      AppTextSubtitle(_formatDuration(_position)),
+                      AppTextSubtitle(_formatDuration(_duration == Duration.zero
+                          ? note.duration
+                          : _duration)),
                         ],
                       ),
                       const SizedBox(height: ADSSpacing.spaceMd),
@@ -182,7 +217,11 @@ class _NotesPageState extends State<NotesPage> {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: FractionallySizedBox(
-                            widthFactor: 0.25, // TODO: 绑定播放进度
+                        widthFactor: _duration.inMilliseconds == 0
+                            ? 0
+                            : (_position.inMilliseconds /
+                                    _duration.inMilliseconds)
+                                .clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: cs.primary,
@@ -198,12 +237,30 @@ class _NotesPageState extends State<NotesPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           _RoundIcon(
-                            icon: Icons.play_arrow_rounded,
+                        icon: _isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
                         size: 48,
-                           
                             filled: true,
-                            onTap: () {
-                              // TODO: 播放/暂停
+                        onTap: () async {
+                          if (note.audioPath == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('No audio available for this note'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+                          if (_isPlaying) {
+                            await _player.pause();
+                          } else {
+                            // 若尚未设置时长，先设置资源
+                            await _player
+                                .setSource(DeviceFileSource(note.audioPath!));
+                            await _player.resume();
+                          }
                             },
                           ),
                       const Spacer(),
