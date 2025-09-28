@@ -31,6 +31,8 @@ class ADSBrand {
   // 命名以用途为导向，便于在组件中直接引用。
   static const Color primary = Color(0xFFB5D0CC); // 主品牌色（按钮、强调）
   static const Color secondary = Color(0xFFE8F7F5); // 次级品牌色（辅助强调）
+  // 组件语义色（如需与品牌主色区分，可单独定义）
+  static const Color buttonPrimary = Color(0xFF0F172A); // 主按钮背景（深黑）
 
   // Light 主题基础色
   static const Color lightBackground = Color(0xFFF8FAFC); // 页面背景
@@ -84,7 +86,7 @@ class ADSTypography {
     fontFamily: _fontFamily,
   );
   static const TextStyle h2 = TextStyle(
-    fontSize: 20,
+    fontSize: 18,
     height: 1.3,
     fontWeight: FontWeight.w600,
     color: ADSColors.lightTextPrimary,
@@ -101,8 +103,8 @@ class ADSTypography {
   static const TextStyle body = TextStyle(
     fontSize: 14,
     height: 1.5,
-    fontWeight: FontWeight.w400,
-    color: ADSColors.lightTextPrimary,
+    fontWeight: FontWeight.w500,
+    color: ADSColors.lightTextSecondary,
     fontFamily: _fontFamily,
   );
   static const TextStyle caption = TextStyle(

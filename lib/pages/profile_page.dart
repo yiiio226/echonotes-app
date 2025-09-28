@@ -79,10 +79,10 @@ class ProfilePage extends StatelessWidget {
               },
               child: Row(
                 children: [
-                  const Expanded(child: AppTextBody('Name')),
+                  const Expanded(child: AppTextTitle('Name')),
                   Row(
                     children: const [
-                      AppTextCaption('John Doe'),
+                      AppTextBody('John Doe'),
                       SizedBox(width: ADSSpacing.spaceLg),
                       Icon(Icons.chevron_right),
                     ],
@@ -99,10 +99,10 @@ class ProfilePage extends StatelessWidget {
               },
               child: Row(
                 children: [
-                  const Expanded(child: AppTextBody('Email')),
+                  const Expanded(child: AppTextTitle('Email')),
                   Row(
                     children: const [
-                      AppTextCaption('john.doe@example.com'),
+                      AppTextBody('john.doe@example.com'),
                       SizedBox(width: ADSSpacing.spaceLg),
                       Icon(Icons.chevron_right),
                     ],
@@ -273,7 +273,9 @@ class ProfilePage extends StatelessWidget {
 
             // ============ 版本信息 ============
             const SizedBox(height: ADSSpacing.spaceXl),
-            const Divider(),
+            const Divider(
+              color: ADSColors.lightDivider,
+            ),
             const SizedBox(height: ADSSpacing.spaceLg),
             Center(
               child: Column(
@@ -334,15 +336,14 @@ class _SettingsItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppTextTitle(
                   title,
-                  style: ADSTypography.h3.copyWith(
-                    color: Theme.of(context).textTheme.titleMedium?.color,
-                    fontWeight: FontWeight.w600,
+                
+               
                   ),
-                ),
+               
                 const SizedBox(height: 4),
-                AppTextCaption(subtitle),
+                AppTextBody(subtitle),
               ],
             ),
           ),

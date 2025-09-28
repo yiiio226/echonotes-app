@@ -43,10 +43,11 @@ class NoteListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppTextSubtitle(note.title),
+                AppTextTitle(note.title),
                 const SizedBox(height: ADSSpacing.spaceSm),
                 AppTextBody(
                   note.summary,
+                  color: ADSColors.lightTextSecondary,
                   maxLines: 2,
                 ),
                 const SizedBox(height: ADSSpacing.spaceSm),

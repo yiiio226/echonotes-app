@@ -71,6 +71,37 @@ class AppTextSubtitle extends StatelessWidget {
   }
 }
 
+class AppTextTitle extends StatelessWidget {
+  final String text;
+  final Color? color;
+  final TextAlign? textAlign;
+  final int? maxLines;
+  final bool? softWrap;
+
+  const AppTextTitle(
+    this.text, {
+    super.key,
+    this.color,
+    this.textAlign,
+    this.maxLines,
+    this.softWrap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color defaultColor = Theme.of(context).brightness == Brightness.dark
+        ? ADSColors.darkTextPrimary
+        : ADSColors.lightTextPrimary;
+    return Text(
+      text,
+      style: ADSTypography.h3.copyWith(color: color ?? defaultColor),
+      textAlign: textAlign,
+      maxLines: maxLines,
+      softWrap: softWrap,
+    );
+  }
+}
+
 class AppTextBody extends StatelessWidget {
   final String text;
   final Color? color;

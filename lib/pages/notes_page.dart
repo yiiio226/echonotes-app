@@ -182,60 +182,58 @@ class NotesPage extends StatelessWidget {
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 摘要（AI Summary） ============
-                AppCard(
-                  backgroundColor: cs.secondary.withOpacity(0.6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const AppTextSubtitle('Summary'),
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      AppTextBody(note.summary),
-                    ],
+                SizedBox(
+                  width: double.infinity,
+                  child: AppCard(
+                    backgroundColor: cs.secondary.withOpacity(0.6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const AppTextSubtitle('Summary'),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        AppTextBody(note.summary),
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 转写文本（Transcription） ============
-                const AppTextHeadline('Full Transcription'),
+                const AppTextSubtitle('Full Transcription'),
                 const SizedBox(height: ADSSpacing.spaceSm),
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AppTextBody(
-                        // 仅示意：使用 summary 充当段落文本
-                        '${note.summary} ${note.summary}',
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      // TODO: 可折叠展开长文
-                    ],
+                SizedBox(
+                  width: double.infinity,
+                  child: AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        AppTextBody(
+                          // 仅示意：使用 summary 充当段落文本
+                          '${note.summary} ${note.summary}',
+                          softWrap: true,
+                        ),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        // TODO: 可折叠展开长文
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 相关笔记（Related Notes） ============
-                const AppTextHeadline('Related Notes'),
+                const AppTextSubtitle('Related Notes'),
                 const SizedBox(height: ADSSpacing.spaceSm),
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      ...relatedNotes.map(
-                        (n) => Padding(
-                          padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                          child: NoteListItem(
-                            note: n,
-                            onTap: () {
-                              // TODO: 跳转到对应相关笔记详情
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                ...relatedNotes.map(
+                  (n) => Padding(
+                    padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
+                    child: NoteListItem(
+                      note: n,
+                      onTap: () {
+                        // TODO: 跳转到对应相关笔记详情
+                      },
+                    ),
                   ),
                 ),
               ],

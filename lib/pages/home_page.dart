@@ -5,6 +5,7 @@ import 'package:echonotes/design/app_design_system.dart';
 import 'package:echonotes/components/app_text.dart';
 // import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/note_list_item.dart';
+import 'package:echonotes/components/app_search.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:echonotes/pages/notes_page.dart';
@@ -92,7 +93,6 @@ class _HomePageState extends State<HomePage> {
         surfaceTintColor: Colors.transparent,
         titleSpacing: ADSSpacing.spaceXl,
         title: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             AppTextHeadline("Let's EchoNote"),
@@ -100,6 +100,7 @@ class _HomePageState extends State<HomePage> {
             AppTextBody('anything you care'),
           ],
         ),
+        centerTitle: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: ADSSpacing.spaceXl),
@@ -117,44 +118,64 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
+      body: Stack(
         children: [
-          const SizedBox(height: ADSSpacing.spaceLg),
-          Row(
-            children: const [
-              AppTextSubtitle('All Notes'),
-              Spacer(),
-              AppTextCaption('3 notes'),
-            ],
-          ),
-          const SizedBox(height: ADSSpacing.spaceSm),
-          TextField(
-            controller: _searchCtrl,
-            decoration: InputDecoration(
-              hintText: 'Search notes…',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: ADSRadius.radiusLg),
-              filled: true,
+          // 顶部柔和渐变背景（参考设计图）
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.12),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: ADSSpacing.spaceLg),
-          ..._filtered
-              .map((n) => Padding(
-                    padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                    child: NoteListItem(
-                      note: n,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => NotesPage(note: n),
-                          ),
-                        );
-                      },
-                    ),
-                  ))
-              .toList(),
-          const SizedBox(height: 96),
+          ListView(
+            padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
+            children: [
+              const SizedBox(height: ADSSpacing.spaceLg),
+              Row(
+                children: const [
+                  AppTextSubtitle('All Notes'),
+                  Spacer(),
+                  AppTextCaption('3 notes'),
+                ],
+              ),
+              const SizedBox(height: ADSSpacing.spaceSm),
+              AppSearch(
+                controller: _searchCtrl,
+                onChanged: (_) => _onSearchChanged(),
+                hintText: 'Search notes…',
+              ),
+              const SizedBox(height: ADSSpacing.spaceLg),
+              ..._filtered
+                  .map((n) => Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
+                        child: NoteListItem(
+                          note: n,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NotesPage(note: n),
+                              ),
+                            );
+                          },
+                        ),
+                      ))
+                  .toList(),
+              const SizedBox(height: 96),
+            ],
+          ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -165,8 +186,8 @@ class _HomePageState extends State<HomePage> {
           child: Container(
             width: 64,
             height: 64,
-            decoration: const BoxDecoration(
-              color: Colors.black87,
+            decoration: BoxDecoration(
+              color: ADSColors.buttonPrimary,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.mic, color: Colors.white),
