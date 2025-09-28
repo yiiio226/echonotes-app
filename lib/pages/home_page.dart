@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:echonotes/design/app_design_system.dart';
@@ -8,6 +7,9 @@ import 'package:echonotes/components/note_list_item.dart';
 import 'package:echonotes/components/app_search.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:async';
 import 'package:echonotes/pages/notes_page.dart';
 import 'package:echonotes/pages/profile_page.dart';
 
@@ -51,7 +53,8 @@ class _HomePageState extends State<HomePage> {
             : _all
                 .where((n) =>
                     n.title.toLowerCase().contains(q) ||
-                    n.summary.toLowerCase().contains(q))
+                    n.summary.toLowerCase().contains(q) ||
+                    n.transcription.toLowerCase().contains(q))
                 .toList();
       });
     });
@@ -118,7 +121,24 @@ class _HomePageState extends State<HomePage> {
           : _all
               .where((n) =>
                   n.title.toLowerCase().contains(q) ||
-                  n.summary.toLowerCase().contains(q))
+                  n.summary.toLowerCase().contains(q) ||
+                  n.transcription.toLowerCase().contains(q))
+              .toList();
+    });
+  }
+
+  // 删除笔记
+  void _deleteNote(Note note) {
+    final String q = _searchCtrl.text.trim().toLowerCase();
+    setState(() {
+      _all = _all.where((n) => n.id != note.id).toList();
+      _filtered = q.isEmpty
+          ? _all
+          : _all
+              .where((n) =>
+                  n.title.toLowerCase().contains(q) ||
+                  n.summary.toLowerCase().contains(q) ||
+                  n.transcription.toLowerCase().contains(q))
               .toList();
     });
   }
@@ -207,7 +227,10 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => NotesPage(note: n),
+                                  builder: (_) => NotesPage(
+                                    note: n,
+                                    onNoteDeleted: () => _deleteNote(n),
+                                  ),
                                 ),
                               );
                             },
@@ -264,12 +287,19 @@ class _RecordingSheetState extends State<_RecordingSheet> {
   bool _sttListening = false;
   String _transcript = '';
   String? _localeId;
+  final AudioRecorder _rec = AudioRecorder();
+  String? _audioPath;
+  static const int _maxSamples = 48; // 波形保留的采样数量
+  final List<double> _levels = <double>[]; // 0..1 归一化幅度
+  StreamSubscription<Amplitude>? _ampSub;
+  double _lastLevel = 0; // 用于幅度平滑
 
   @override
   void initState() {
     super.initState();
     _startTimer();
     _startSpeechToText();
+    _startRecording();
   }
 
   void _startTimer() {
@@ -293,6 +323,10 @@ class _RecordingSheetState extends State<_RecordingSheet> {
       _stt.stop();
       _sttListening = false;
     }
+    // 停止监听幅度
+    _ampSub?.cancel();
+    // 停止录音，获取音频文件路径
+    _finishRecording();
     // 1) 保存笔记；2) 生成文字转写与简短摘要；3) 收回面板；4) 首页顶部新增新笔记
     final DateTime now = DateTime.now();
     // 仅使用真实识别结果；不再使用占位/演示文案
@@ -304,9 +338,10 @@ class _RecordingSheetState extends State<_RecordingSheet> {
       id: now.microsecondsSinceEpoch.toString(),
       title: title,
       summary: summary,
+      transcription: transcript,
       createdAt: now,
       duration: _elapsed,
-      audioPath: null,
+      audioPath: _audioPath,
     );
     widget.onSaved(note);
     Navigator.of(context).maybePop();
@@ -355,8 +390,59 @@ class _RecordingSheetState extends State<_RecordingSheet> {
   @override
   void dispose() {
     _timer.cancel();
+    _ampSub?.cancel();
+    _rec.dispose();
     super.dispose();
   }
+
+  Future<void> _startRecording() async {
+    try {
+      final bool hasPerm = await _rec.hasPermission();
+      if (!hasPerm) return;
+      final dir = await getTemporaryDirectory();
+      final String path =
+          '${dir.path}/echonotes_${DateTime.now().microsecondsSinceEpoch}.m4a';
+      _audioPath = path;
+      await _rec.start(
+        RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: path,
+      );
+      // 订阅幅度变化，驱动波形
+      _ampSub?.cancel();
+      _ampSub = _rec
+          .onAmplitudeChanged(const Duration(milliseconds: 80))
+          .listen((amp) {
+        final double db = amp.current;
+        // 将 dB (-60..0) 粗略映射为 0..1
+        double level = (db + 45) / 45; // 提高灵敏度
+        if (level.isNaN || !level.isFinite) level = 0;
+        level = level.clamp(0.0, 1.0);
+        // 指数平滑，提升丝滑度
+        level = _lastLevel * 0.6 + level * 0.4;
+        _lastLevel = level;
+        if (!mounted) return;
+        setState(() {
+          _levels.add(level);
+          if (_levels.length > _maxSamples) {
+            _levels.removeAt(0);
+          }
+        });
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _finishRecording() async {
+    try {
+      final p = await _rec.stop();
+      if (p != null) _audioPath = p;
+    } catch (_) {}
+  }
+
+  // 注意：dispose 已在上方定义，这里移除重复定义
 
   String _format(Duration d) {
     final String mm = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -396,10 +482,22 @@ class _RecordingSheetState extends State<_RecordingSheet> {
             ),
             const SizedBox(height: 16),
             Container(
-              height: 48,
+              height: 96,
               decoration: BoxDecoration(
                 color: cs.surface,
                 borderRadius: ADSRadius.radiusLg,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ClipRRect(
+                borderRadius: ADSRadius.radiusLg,
+                child: _WaveformBars(
+                  levels: _levels,
+                  targetCount: _maxSamples,
+                  gap: 4,
+                  color: theme.brightness == Brightness.dark
+                      ? ADSColors.darkTextSecondary
+                      : ADSColors.lightTextSecondary,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -473,3 +571,82 @@ String _summarize(String transcript) {
 }
 
 
+
+class _WaveformBars extends StatelessWidget {
+  final List<double> levels; // 0..1
+  final int targetCount;
+  final double gap;
+  final Color color;
+
+  const _WaveformBars({
+    required this.levels,
+    required this.targetCount,
+    required this.gap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _WaveBarsPainter(
+        levels: levels,
+        targetCount: targetCount,
+        gap: gap,
+        color: color,
+      ),
+      size: Size.infinite,
+    );
+  }
+}
+
+class _WaveBarsPainter extends CustomPainter {
+  final List<double> levels;
+  final int targetCount;
+  final double gap;
+  final Color color;
+
+  _WaveBarsPainter({
+    required this.levels,
+    required this.targetCount,
+    required this.gap,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    if (levels.isEmpty) return;
+
+    final int n = targetCount.clamp(1, 256);
+    // 若当前样本少于目标数，用 0 填充到左侧保证条数恒定
+    final List<double> data = List<double>.filled(n, 0);
+    final int start = (n - levels.length).clamp(0, n);
+    for (int i = 0; i < levels.length && (start + i) < n; i++) {
+      data[start + i] = levels[i];
+    }
+
+    final double barGap = gap;
+    final double barWidth = (size.width - barGap * (n - 1)) / n;
+    final double centerY = size.height / 2;
+    for (int i = 0; i < n; i++) {
+      final double level = data[i].clamp(0.0, 1.0);
+      final double h = (size.height * 0.85) * (0.2 + 0.8 * level);
+      final double left = i * (barWidth + barGap);
+      final double top = centerY - h / 2;
+      final RRect r = RRect.fromRectAndRadius(
+        Rect.fromLTWH(left, top, barWidth, h),
+        const Radius.circular(4),
+      );
+      canvas.drawRRect(r, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WaveBarsPainter oldDelegate) {
+    return oldDelegate.levels != levels || oldDelegate.color != color;
+  }
+}

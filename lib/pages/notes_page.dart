@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:echonotes/design/app_design_system.dart';
 import 'package:echonotes/components/app_text.dart';
 import 'package:echonotes/components/app_card.dart';
+import 'package:echonotes/components/app_button.dart';
+import 'package:echonotes/components/app_bottom_sheet.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:echonotes/components/note_list_item.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 /// NotesPage（TSX -> Flutter 静态映射）
 ///
@@ -13,10 +16,50 @@ import 'package:echonotes/components/note_list_item.dart';
 /// - NoteTranscription: 转写正文 -> AppCard + AppText 组件
 /// - RelatedNotes: 相关笔记 -> 使用现有 NoteListItem 列表（仅展示，点击留 TODO）
 /// - 全部样式使用设计系统令牌（Typography / Spacing / Radius / Colors）以适配明暗主题
-class NotesPage extends StatelessWidget {
+class NotesPage extends StatefulWidget {
   final Note note;
+  final VoidCallback? onNoteDeleted;
 
-  const NotesPage({super.key, required this.note});
+  const NotesPage({super.key, required this.note, this.onNoteDeleted});
+
+  @override
+  State<NotesPage> createState() => _NotesPageState();
+}
+
+class _NotesPageState extends State<NotesPage> {
+  Note get note => widget.note;
+  final AudioPlayer _player = AudioPlayer();
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
+  bool _isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 绑定播放器事件
+    _player.onPositionChanged.listen((p) {
+      if (!mounted) return;
+      setState(() => _position = p);
+    });
+    _player.onDurationChanged.listen((d) {
+      if (!mounted) return;
+      setState(() => _duration = d);
+    });
+    _player.onPlayerStateChanged.listen((s) {
+      if (!mounted) return;
+      setState(() => _isPlaying = s == PlayerState.playing);
+    });
+    // 预加载音频（若有）
+    if (note.audioPath != null) {
+      _player.setSource(DeviceFileSource(note.audioPath!));
+    }
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
 
   String _formatDuration(Duration d) {
     final String mm = d.inMinutes.remainder(60).toString();
@@ -34,6 +77,65 @@ class NotesPage extends StatelessWidget {
     ];
     final String mon = months[dt.month - 1];
     return '$hour12:$minute $ampm, $mon ${dt.day}';
+  }
+
+  // 显示删除确认对话框
+  void _showDeleteConfirmation(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AppBottomSheet(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: ADSSpacing.spaceSm),
+            const AppTextSubtitle('Delete Note'),
+            const SizedBox(height: ADSSpacing.spaceSm),
+            const AppTextBody(
+              'Are you sure you want to delete this note? This action cannot be undone.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: ADSSpacing.spaceXl),
+            AppButton(
+              label: 'Delete',
+              onPressed: () {
+                Navigator.of(context).pop(); // 关闭对话框
+                _deleteNote(context);
+              },
+              expanded: true,
+            ),
+            const SizedBox(height: ADSSpacing.spaceSm),
+            AppButton(
+              label: 'Cancel',
+              variant: AppButtonVariant.secondary,
+              onPressed: () => Navigator.of(context).pop(),
+              expanded: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 删除笔记并返回首页
+  void _deleteNote(BuildContext context) {
+    // TODO: 实际删除逻辑（从数据库/存储中删除）
+    // 这里只是演示，实际应该调用删除服务
+
+    // 调用删除回调，通知首页更新列表
+    widget.onNoteDeleted?.call();
+
+    // 显示删除成功提示
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Note deleted successfully'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    // 返回首页
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
@@ -68,9 +170,7 @@ class NotesPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.delete_outline),
             color: theme.iconTheme.color,
-            onPressed: () {
-              // TODO: 删除确认（底部抽屉）
-            },
+            onPressed: () => _showDeleteConfirmation(context),
           ),
           const SizedBox(width: ADSSpacing.spaceXl),
         ],
@@ -100,8 +200,10 @@ class NotesPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          const AppTextSubtitle('0:13'), // TODO: 绑定当前进度
-                          AppTextSubtitle(_formatDuration(note.duration)),
+                      AppTextSubtitle(_formatDuration(_position)),
+                      AppTextSubtitle(_formatDuration(_duration == Duration.zero
+                          ? note.duration
+                          : _duration)),
                         ],
                       ),
                       const SizedBox(height: ADSSpacing.spaceMd),
@@ -115,7 +217,11 @@ class NotesPage extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: FractionallySizedBox(
-                            widthFactor: 0.25, // TODO: 绑定播放进度
+                        widthFactor: _duration.inMilliseconds == 0
+                            ? 0
+                            : (_position.inMilliseconds /
+                                    _duration.inMilliseconds)
+                                .clamp(0.0, 1.0),
                             child: Container(
                               decoration: BoxDecoration(
                                 color: cs.primary,
@@ -131,30 +237,51 @@ class NotesPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           _RoundIcon(
-                            icon: Icons.play_arrow_rounded,
+                        icon: _isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
                         size: 48,
-                           
                             filled: true,
-                            onTap: () {
-                              // TODO: 播放/暂停
+                        onTap: () async {
+                          if (note.audioPath == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('No audio available for this note'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+                          if (_isPlaying) {
+                            await _player.pause();
+                          } else {
+                            // 若尚未设置时长，先设置资源
+                            await _player
+                                .setSource(DeviceFileSource(note.audioPath!));
+                            await _player.resume();
+                          }
                             },
                           ),
                       const Spacer(),
-                          Expanded(
-                            child: Wrap(
-                              spacing: ADSSpacing.spaceLg,
-                              runSpacing: ADSSpacing.spaceSm,
+                        
+                      Row(
+                             
+                             
                               children: const <Widget>[
                             _SpeedChip(
                               label: '1x',
                               selected: true,
                             ),
+                          const SizedBox(width: ADSSpacing.spaceSm),
                     
                                 _SpeedChip(label: '1.5x'),
+                          const SizedBox(width: ADSSpacing.spaceSm),
                                 _SpeedChip(label: '2x'),
+                           
                               ],
                             ),
-                          ),
+                        
                         ],
                       ),
                     ],
@@ -192,7 +319,7 @@ class NotesPage extends StatelessWidget {
                       children: <Widget>[
                         AppTextBody(
                           // 仅示意：使用 summary 充当段落文本
-                          '${note.summary} ${note.summary}',
+                      '${note.summary}',
                           softWrap: true,
                         ),
                         const SizedBox(height: ADSSpacing.spaceSm),

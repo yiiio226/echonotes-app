@@ -10,6 +10,7 @@ import 'package:echonotes/pages/privacy_settings_page.dart';
 import 'package:echonotes/pages/help_feedback_page.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// ProfilePage（TSX + 设计图 -> Flutter 静态映射）
 ///
@@ -33,6 +34,10 @@ class _ProfilePageState extends State<ProfilePage> {
   late final TextEditingController _nameCtrl =
       TextEditingController(text: _displayName);
   String? _avatarPath; // 本地头像路径
+  
+  // SharedPreferences 键名
+  static const String _displayNameKey = 'user_display_name';
+  static const String _avatarPathKey = 'user_avatar_path';
 
   Color _successColor(Brightness b) =>
       b == Brightness.dark ? ADSColors.darkSuccess : ADSColors.lightSuccess;
@@ -43,6 +48,38 @@ class _ProfilePageState extends State<ProfilePage> {
   Color _errorColor(Brightness b) =>
       b == Brightness.dark ? ADSColors.darkError : ADSColors.lightError;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // 加载用户数据
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _displayName = prefs.getString(_displayNameKey) ?? 'John Doe';
+      _avatarPath = prefs.getString(_avatarPathKey);
+      _nameCtrl.text = _displayName;
+    });
+  }
+
+  // 保存显示名称
+  Future<void> _saveDisplayName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_displayNameKey, name);
+  }
+
+  // 保存头像路径
+  Future<void> _saveAvatarPath(String? path) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (path != null) {
+      await prefs.setString(_avatarPathKey, path);
+    } else {
+      await prefs.remove(_avatarPathKey);
+    }
+  }
+
   Future<void> _pickAvatar() async {
     try {
       final ImagePicker picker = ImagePicker();
@@ -51,6 +88,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _avatarPath = image.path;
         });
+        await _saveAvatarPath(image.path);
       }
     } catch (_) {
       // TODO: 处理授权失败/用户取消
@@ -140,12 +178,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: ADSSpacing.spaceXl),
                         AppButton(
                           label: 'Save Changes',
-                          onPressed: () {
+                          onPressed: () async {
                             final String next = _nameCtrl.text.trim();
                             if (next.isNotEmpty) {
                               setState(() {
                                 _displayName = next;
                               });
+                              await _saveDisplayName(next);
                             }
                             Navigator.of(context).maybePop();
                           },
