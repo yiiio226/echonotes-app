@@ -5,6 +5,7 @@ import 'package:echonotes/components/app_text.dart';
 import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/app_bottom_sheet.dart';
 import 'package:echonotes/components/app_text_field.dart';
+import 'package:echonotes/pages/upgrade_page.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
@@ -26,8 +27,9 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final TextEditingController _nameCtrl =
-      TextEditingController(text: 'John Doe');
+  String _displayName = 'John Doe';
+  late final TextEditingController _nameCtrl =
+      TextEditingController(text: _displayName);
   String? _avatarPath; // 本地头像路径
 
   Color _successColor(Brightness b) =>
@@ -137,8 +139,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         AppButton(
                           label: 'Save Changes',
                           onPressed: () {
-                            // 保存名称到页面展示
-                            setState(() {});
+                            final String next = _nameCtrl.text.trim();
+                            if (next.isNotEmpty) {
+                              setState(() {
+                                _displayName = next;
+                              });
+                            }
                             Navigator.of(context).maybePop();
                           },
                           expanded: true,
@@ -159,10 +165,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   const Expanded(child: AppTextTitle('Name')),
                   Row(
-                    children: const [
-                      AppTextBody('John Doe'),
-                      SizedBox(width: ADSSpacing.spaceLg),
-                      Icon(Icons.chevron_right),
+                    children: [
+                      AppTextBody(_displayName),
+                      const SizedBox(width: ADSSpacing.spaceLg),
+                      const Icon(Icons.chevron_right),
                     ],
                   ),
                 ],
@@ -224,7 +230,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       AppButton(
                         label: 'Upgrade',
                         onPressed: () {
-                          // TODO: 跳转到升级页
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const UpgradePage(),
+                            ),
+                          );
                         },
                       ),
                     ],
