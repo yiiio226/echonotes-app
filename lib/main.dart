@@ -18,30 +18,16 @@ class EchoNotesApp extends StatefulWidget {
 }
 
 class _EchoNotesAppState extends State<EchoNotesApp> {
-  ThemeMode _themeMode = ThemeMode.system; // 初始跟随系统
+  ThemeMode _themeMode = ThemeMode.light; // 默认使用浅色，未设置前不跟随系统
 
-  void _toggleThemeMode() {
-    setState(() {
-      // 在 system / light / dark 三种模式间循环
-      switch (_themeMode) {
-        case ThemeMode.system:
-          _themeMode = ThemeMode.light;
-          break;
-        case ThemeMode.light:
-          _themeMode = ThemeMode.dark;
-          break;
-        case ThemeMode.dark:
-          _themeMode = ThemeMode.system;
-          break;
-      }
-    });
-  }
+  // 预留：如需主题切换可恢复此方法
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'EchoNotes',
       theme: ADSTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
       darkTheme: ADSTheme.darkTheme,
       themeMode: _themeMode,
       home: const HomePage(),
