@@ -5,6 +5,7 @@ import 'package:echonotes/design/app_design_system.dart';
 import 'package:echonotes/components/app_text.dart';
 // import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/note_list_item.dart';
+import 'package:echonotes/components/app_search.dart';
 import 'package:echonotes/models/note.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:echonotes/pages/notes_page.dart';
@@ -85,21 +86,34 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     // final theme = Theme.of(context);
-    return Scaffold(
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/img_bg.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        toolbarHeight: 162,
         titleSpacing: ADSSpacing.spaceXl,
         title: Column(
-          
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             AppTextHeadline("Let's EchoNote"),
             SizedBox(height: 4),
-            AppTextBody('anything you care'),
+                AppTextHeadline(
+                  'anything you care',
+                  color: ADSColors.lightTextSecondary,
+                ),
           ],
         ),
+        centerTitle: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: ADSSpacing.spaceXl),
@@ -109,54 +123,56 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(builder: (_) => const ProfilePage()),
                 );
               },
-              child: const CircleAvatar(
-                radius: 16,
-                child: Icon(Icons.person, size: 18),
+                  child: CircleAvatar(
+                    backgroundColor: ADSColors.lightSurface.withOpacity(0.4),
+                radius: 20,
+                    child: Icon(
+                      Icons.person,
+                      size: 20,
+                      color: ADSColors.lightTextPrimary,
+                    ),
               ),
             ),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
-        children: [
-          const SizedBox(height: ADSSpacing.spaceLg),
-          Row(
-            children: const [
-              AppTextSubtitle('All Notes'),
-              Spacer(),
-              AppTextCaption('3 notes'),
+          body: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: ADSSpacing.spaceXl),
+            children: [
+              //const SizedBox(height: ADSSpacing.spaceXl),
+              Row(
+                children: const [
+                  AppTextSubtitle('All Notes'),
+                  Spacer(),
+                  AppTextCaption('3 notes'),
+                ],
+              ),
+              const SizedBox(height: ADSSpacing.spaceSm),
+              AppSearch(
+                controller: _searchCtrl,
+                onChanged: (_) => _onSearchChanged(),
+                hintText: 'Search notes…',
+              ),
+              const SizedBox(height: ADSSpacing.spaceLg),
+              ..._filtered
+                  .map((n) => Padding(
+                        padding:
+                            const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
+                        child: NoteListItem(
+                          note: n,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NotesPage(note: n),
+                              ),
+                            );
+                          },
+                        ),
+                      ))
+                  .toList(),
+              const SizedBox(height: 96),
             ],
           ),
-          const SizedBox(height: ADSSpacing.spaceSm),
-          TextField(
-            controller: _searchCtrl,
-            decoration: InputDecoration(
-              hintText: 'Search notes…',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: ADSRadius.radiusLg),
-              filled: true,
-            ),
-          ),
-          const SizedBox(height: ADSSpacing.spaceLg),
-          ..._filtered
-              .map((n) => Padding(
-                    padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                    child: NoteListItem(
-                      note: n,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => NotesPage(note: n),
-                          ),
-                        );
-                      },
-                    ),
-                  ))
-              .toList(),
-          const SizedBox(height: 96),
-        ],
-      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 8),
@@ -165,8 +181,8 @@ class _HomePageState extends State<HomePage> {
           child: Container(
             width: 64,
             height: 64,
-            decoration: const BoxDecoration(
-              color: Colors.black87,
+            decoration: BoxDecoration(
+                  color: ADSColors.lightButtonPrimary,
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.mic, color: Colors.white),
@@ -179,6 +195,8 @@ class _HomePageState extends State<HomePage> {
           child: AppTextCaption('Tap to record'),
         ),
       ),
+        ),
+      ],
     );
   }
 }

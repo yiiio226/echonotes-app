@@ -48,12 +48,9 @@ class NotesPage extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      // 顶部应用栏（Header 仅图标）
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
         titleSpacing: ADSSpacing.spaceXl,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -78,38 +75,19 @@ class NotesPage extends StatelessWidget {
           const SizedBox(width: ADSSpacing.spaceXl),
         ],
       ),
-      body: Stack(
-        children: <Widget>[
-          // 渐变背景（顶部柔和品牌色）
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: Container(
-                height: 260,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: <Color>[
-                      cs.primary.withOpacity(0.18),
-                      cs.secondary.withOpacity(0.18),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              ADSSpacing.spaceXl,
-              96, // 预留给沉浸式 AppBar 的顶部空间
-              ADSSpacing.spaceXl,
-              ADSSpacing.spaceXl,
-            ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          ADSSpacing.spaceXl,
+          ADSSpacing.spaceLg,
+          ADSSpacing.spaceXl,
+          ADSSpacing.spaceXl,
+        ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              
               children: <Widget>[
                 // ============ 顶部标题与时间（大标题） ============
+            //const SizedBox(height: ADSSpacing.spaceXl),
                 AppTextHeadline(note.title),
                 const SizedBox(height: ADSSpacing.spaceSm),
                 AppTextBody(_formatDate(note.createdAt)),
@@ -154,7 +132,8 @@ class NotesPage extends StatelessWidget {
                         children: <Widget>[
                           _RoundIcon(
                             icon: Icons.play_arrow_rounded,
-                            size: 64,
+                        size: 48,
+                           
                             filled: true,
                             onTap: () {
                               // TODO: 播放/暂停
@@ -166,7 +145,10 @@ class NotesPage extends StatelessWidget {
                               spacing: ADSSpacing.spaceLg,
                               runSpacing: ADSSpacing.spaceSm,
                               children: const <Widget>[
-                                _SpeedChip(label: '1x', selected: true),
+                            _SpeedChip(
+                              label: '1x',
+                              selected: true,
+                            ),
                                 _SpeedChip(label: '1.25x'),
                                 _SpeedChip(label: '1.5x'),
                                 _SpeedChip(label: '2x'),
@@ -182,66 +164,62 @@ class NotesPage extends StatelessWidget {
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 摘要（AI Summary） ============
-                AppCard(
-                  backgroundColor: cs.secondary.withOpacity(0.6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const AppTextSubtitle('Summary'),
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      AppTextBody(note.summary),
-                    ],
+                SizedBox(
+                  width: double.infinity,
+                  child: AppCard(
+                backgroundColor: ADSColors.secondary,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const AppTextSubtitle('Summary'),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        AppTextBody(note.summary),
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 转写文本（Transcription） ============
-                const AppTextHeadline('Full Transcription'),
+                const AppTextSubtitle('Full Transcription'),
                 const SizedBox(height: ADSSpacing.spaceSm),
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      AppTextBody(
-                        // 仅示意：使用 summary 充当段落文本
-                        '${note.summary} ${note.summary}',
-                        softWrap: true,
-                      ),
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      // TODO: 可折叠展开长文
-                    ],
+                SizedBox(
+                  width: double.infinity,
+                  child: AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        AppTextBody(
+                          // 仅示意：使用 summary 充当段落文本
+                          '${note.summary} ${note.summary}',
+                          softWrap: true,
+                        ),
+                        const SizedBox(height: ADSSpacing.spaceSm),
+                        // TODO: 可折叠展开长文
+                      ],
+                    ),
                   ),
                 ),
 
                 const SizedBox(height: ADSSpacing.spaceXl),
 
                 // ============ 相关笔记（Related Notes） ============
-                const AppTextHeadline('Related Notes'),
+                const AppTextSubtitle('Related Notes'),
                 const SizedBox(height: ADSSpacing.spaceSm),
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      const SizedBox(height: ADSSpacing.spaceSm),
-                      ...relatedNotes.map(
-                        (n) => Padding(
-                          padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                          child: NoteListItem(
-                            note: n,
-                            onTap: () {
-                              // TODO: 跳转到对应相关笔记详情
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
+                ...relatedNotes.map(
+                  (n) => Padding(
+                    padding: const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
+                    child: NoteListItem(
+                      note: n,
+                      onTap: () {
+                        // TODO: 跳转到对应相关笔记详情
+                      },
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -275,7 +253,7 @@ class _RoundIcon extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: filled ? cs.onPrimary : theme.iconTheme.color,
+          color: filled ? ADSColors.lightButtonPrimary : theme.iconTheme.color,
           size: size * 0.5,
         ),
       ),
@@ -302,14 +280,17 @@ class _SpeedChip extends StatelessWidget {
         vertical: ADSSpacing.spaceSm,
       ),
       decoration: BoxDecoration(
-        color: selected ? cs.primary.withOpacity(0.15) : cs.onSurface.withOpacity(0.06),
+        color: selected
+            ? cs.primary.withOpacity(0.15)
+            : cs.error.withOpacity(0.10),
         borderRadius: ADSRadius.radiusMd,
       ),
       child: Text(
         label,
         style: ADSTypography.body.copyWith(
-          color: selected ? cs.primary : theme.textTheme.bodyMedium?.color,
-          fontWeight: FontWeight.w600,
+          color: ADSColors.lightTextPrimary
+             
+   
         ),
       ),
     );

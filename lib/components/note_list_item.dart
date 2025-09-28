@@ -43,19 +43,22 @@ class NoteListItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppTextSubtitle(note.title),
+                AppTextTitle(note.title),
                 const SizedBox(height: ADSSpacing.spaceSm),
                 AppTextBody(
                   note.summary,
+                  color: ADSColors.lightTextSecondary,
                   maxLines: 2,
                 ),
                 const SizedBox(height: ADSSpacing.spaceSm),
                 Row(
                   children: [
                     AppTextCaption(_formatDate(note.createdAt)),
-                    const SizedBox(width: ADSSpacing.spaceLg),
-                    AppTextCaption(_formatDuration(note.duration)),
+                   
+                    
                     const Spacer(),
+                    AppTextCaption(_formatDuration(note.duration)),
+                    const SizedBox(width: ADSSpacing.spaceLg),
                     const Icon(Icons.play_arrow, size: 18),
                   ],
                 ),

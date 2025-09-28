@@ -27,25 +27,29 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme scheme = theme.colorScheme;
+    // 主题可用于派生其他样式，如需要时再读取
+    // final ThemeData theme = Theme.of(context);
+    // final ColorScheme scheme = theme.colorScheme;
 
     // 根据 variant 选择语义色
     final Color backgroundColor = switch (variant) {
-      AppButtonVariant.primary => scheme.primary,
+      AppButtonVariant.primary => ADSColors.lightButtonPrimary,
       AppButtonVariant.secondary => ADSColors.secondary,
     };
 
-    final Color foregroundColor = Colors.white;
+    final Color foregroundColor = variant == AppButtonVariant.primary
+        ? ADSColors.lightSurface
+        : ADSColors.lightTextPrimary;
 
     final ButtonStyle style = ElevatedButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
-      textStyle: ADSTypography.h2,
+      textStyle: ADSTypography.h3,
       padding: const EdgeInsets.symmetric(
         horizontal: ADSSpacing.spaceXl,
         vertical: ADSSpacing.spaceSm,
       ),
+      //minimumSize: const Size(0, 48), // 设置最小高度确保垂直居中
       shape: RoundedRectangleBorder(borderRadius: ADSRadius.radiusMd),
       elevation: 0,
     );
