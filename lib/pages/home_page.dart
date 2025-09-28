@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchCtrl = TextEditingController();
   late List<Note> _all;
   late List<Note> _filtered;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -35,19 +36,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    final String q = _searchCtrl.text.trim().toLowerCase();
-    setState(() {
-      _filtered = q.isEmpty
-          ? _all
-          : _all
-              .where((n) =>
-                  n.title.toLowerCase().contains(q) ||
-                  n.summary.toLowerCase().contains(q))
-              .toList();
+    // 防抖 300ms
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final String q = _searchCtrl.text.trim().toLowerCase();
+      setState(() {
+        _filtered = q.isEmpty
+            ? _all
+            : _all
+                .where((n) =>
+                    n.title.toLowerCase().contains(q) ||
+                    n.summary.toLowerCase().contains(q))
+                .toList();
+      });
     });
   }
 
@@ -57,6 +63,40 @@ class _HomePageState extends State<HomePage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _RecordingSheet(onSaved: _onNoteSaved),
+    );
+  }
+
+  // 无结果空态
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.only(top: ADSSpacing.spaceXl),
+      child: Column(
+        children: [
+          const Icon(Icons.search_off, size: 40),
+          const SizedBox(height: ADSSpacing.spaceSm),
+          const AppTextBody('No results found'),
+          const SizedBox(height: ADSSpacing.spaceLg),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 清除搜索
+              TextButton(
+                onPressed: () {
+                  _searchCtrl.clear();
+                  _onSearchChanged();
+                },
+                child: const Text('清除搜索'),
+              ),
+              const SizedBox(width: ADSSpacing.spaceLg),
+              // 去录音
+              TextButton(
+                onPressed: _openRecorderSheet,
+                child: const Text('去录音'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -154,22 +194,26 @@ class _HomePageState extends State<HomePage> {
                 hintText: 'Search notes…',
               ),
               const SizedBox(height: ADSSpacing.spaceLg),
-              ..._filtered
-                  .map((n) => Padding(
-                        padding:
-                            const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
-                        child: NoteListItem(
-                          note: n,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => NotesPage(note: n),
-                              ),
-                            );
-                          },
-                        ),
-                      ))
-                  .toList(),
+              if (_filtered.isEmpty)
+                _buildEmptyState()
+              else
+                ..._filtered
+                    .map((n) => Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: ADSSpacing.spaceLg),
+                          child: NoteListItem(
+                            note: n,
+                            highlight: _searchCtrl.text.trim(),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => NotesPage(note: n),
+                                ),
+                              );
+                            },
+                          ),
+                        ))
+                    .toList(),
               const SizedBox(height: 96),
             ],
           ),

@@ -29,7 +29,7 @@ class AppBadge extends StatelessWidget {
     final bool isPrimary = variant == AppBadgeVariant.primary;
 
     final Color bg = isPrimary
-        ? cs.primary
+        ? ADSColors.lightButtonPrimary
         : (theme.brightness == Brightness.dark
             ? ADSColors.darkDivider
             : ADSColors.lightDivider);

@@ -6,6 +6,8 @@ import 'package:echonotes/components/app_button.dart';
 import 'package:echonotes/components/app_bottom_sheet.dart';
 import 'package:echonotes/components/app_text_field.dart';
 import 'package:echonotes/pages/upgrade_page.dart';
+import 'package:echonotes/pages/privacy_settings_page.dart';
+import 'package:echonotes/pages/help_feedback_page.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
@@ -315,7 +317,11 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: 'Manage data and privacy',
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // TODO: 进入隐私设置
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PrivacySettingsPage(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: ADSSpacing.spaceSm),
@@ -327,7 +333,11 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: 'Get help or send feedback',
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // TODO: 进入帮助与反馈
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const HelpFeedbackPage(),
+                  ),
+                );
               },
             ),
 

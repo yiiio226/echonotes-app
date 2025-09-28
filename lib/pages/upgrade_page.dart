@@ -72,7 +72,7 @@ class _UpgradePageState extends State<UpgradePage> {
     
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
         title: const AppTextSubtitle('Upgrade Plan'),
         backgroundColor: Colors.transparent,
         leading: IconButton(
